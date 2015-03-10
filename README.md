@@ -1,6 +1,6 @@
 # CoffeeScript<sub>Async</sub>
 
-This is a small modification to [CoffeeScript][coffeescript] which adds support for the proposed ECMAScript 7 [async function syntax][async-await]. Here we make no attempt to actually make this syntax usable in JavaScript engines that don't already support it natively (currently none of them) — in practice the idea is to chain this to [Babel][babel] or something of that sort and compile it down to its underlying ECMAScript 6 generator representation, or, via [Regenerator][babel-regenerator], further down to compatibility with ECMAScript 5 and probably most major web browsers going back at least a few years.
+This is a small modification to [CoffeeScript][coffeescript] which adds support for the proposed ECMAScript 7 [async function syntax][async-await]. Here we make no attempt to actually make this syntax available in JavaScript engines that don't support it natively yet (currently all of them) — in practice the idea is to chain this to [Babel][babel] or something of that sort and compile it down to its underlying representation as ECMAScript 6 promises and generators, or, via [Regenerator][babel-regenerator], further down to compatibility with ECMAScript 5 and probably most major web browsers going back at least a few years.
 
 ## Examples
 
@@ -8,9 +8,9 @@ From the [async/await proposal][async-await]:
 
 <table>
 <tr>
-  <th>Using raw promises</th>
-  <th>Using async/await syntax</th>
-  <th>CoffeeScript</th>
+  <th>ECMAScript 6 Promises</th>
+  <th>ECMAScript 7 Async/Await</th>
+  <th>CoffeeScript<sub>Async</sub></th>
 </tr>
 <tr>
 <td>
@@ -59,13 +59,45 @@ chainAnimationsAsync = (elem, animations) ->
 </tr>
 </table>
 
+<table>
+<tr>
+  <th>ECMAScript 7 Async/Await</th>
+  <th>CoffeeScript<sub>Async</sub></th>
+</tr>
+<tr>
+<td>
+<sub><pre lang="JavaScript">
+async function getData() {
+  var items = await fetchAsync('http://example.com/users');
+  return await* items.map(async(item) => {
+    return {
+      title: item.title, 
+      img: (await fetchAsync(item.userDataUrl)).img
+    }
+  });
+}
+</pre></sub>
+</td>
+<td>
+<sub><pre lang="CoffeeScript">
+getData = ->
+  items = await fetchAsync 'http://example.com/users'
+  await all for item of items
+    do ->
+      title: item.title
+      img: (await fetchAsync item.userDataUrl).img
+</pre></sub>
+</td>
+</tr>
+</table>
+
 From [Jake Archibald](http://jakearchibald.com/2014/es7-async-functions/):
 
 <table>
 <tr>
-  <th>Using raw promises</th>
-  <th>Using async/await syntax</th>
-  <th>CoffeeScript</th>
+  <th>ECMAScript 6 Promises</th>
+  <th>ECMAScript 7 Async/Await</th>
+  <th>CoffeeScript<sub>Async</sub></th>
 </tr>
 <tr>
 <td>
