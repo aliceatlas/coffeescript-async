@@ -93,6 +93,9 @@ exports.Base = class Base
     if func.isGenerator or func.base?.isGenerator
       parts.unshift @makeCode "(yield* "
       parts.push    @makeCode ")"
+    if func.isAsync or func.base?.isAsync
+      parts.unshift @makeCode "(await "
+      parts.push    @makeCode ")"
     parts
 
   # If the code generation wishes to use the result of a complex expression
@@ -1366,6 +1369,8 @@ exports.Code = class Code extends Base
     @bound       = tag is 'boundfunc'
     @isGenerator = !!@body.contains (node) ->
       node instanceof Op and node.operator in ['yield', 'yield*']
+    @isAsync     = !!@body.contains (node) ->
+      node instanceof Op and node.operator == 'await'
 
   children: ['params', 'body']
 
@@ -1431,7 +1436,8 @@ exports.Code = class Code extends Base
       node.error "multiple parameters named #{name}" if name in uniqs
       uniqs.push name
     @body.makeReturn() unless wasEmpty or @noReturn
-    code = 'function'
+    code = if @isAsync then 'async ' else ''
+    code += 'function'
     code += '*' if @isGenerator
     code += ' ' + @name if @ctor
     code += '('
@@ -1679,6 +1685,9 @@ exports.Op = class Op extends Base
   isYieldReturn: ->
     @isYield() and @first instanceof Return
 
+  isAwait: ->
+    @operator == 'await'
+
   isUnary: ->
     not @second
 
@@ -1747,6 +1756,7 @@ exports.Op = class Op extends Base
     if @operator in ['--', '++'] and @first.unwrapAll().value in STRICT_PROSCRIBED
       @error "cannot increment/decrement \"#{@first.unwrapAll().value}\""
     return @compileYield     o if @isYield()
+    return @compileAwait     o if @isAwait()
     return @compileUnary     o if @isUnary()
     return @compileChain     o if isChain
     switch @operator
@@ -1805,7 +1815,10 @@ exports.Op = class Op extends Base
     parts = []
     op = @operator
     if not o.scope.parent?
-      @error 'yield statements must occur within a function generator.'
+      @error 'yield expression can only be used within a generator function'
+    if o.scope.method.startedAsync?
+      @error 'yield cannot be used in an async function'
+    o.scope.method.startedGenerator = true
     if 'expression' in Object.keys(@first) and not (@first instanceof Throw)
       if @isYieldReturn()
         parts.push @first.compileToFragments o, LEVEL_TOP
@@ -1815,6 +1828,19 @@ exports.Op = class Op extends Base
       parts.push [@makeCode "(#{op} "]
       parts.push @first.compileToFragments o, LEVEL_OP
       parts.push [@makeCode ")"]
+    @joinFragmentArrays parts, ''
+
+  compileAwait: (o) ->
+    parts = []
+    op = @operator
+    if not o.scope.parent?
+      @error 'await expression can only be used within an async function'
+    if o.scope.method.startedGenerator?
+      @error 'await cannot be used in a generator function'
+    o.scope.method.startedAsync = true
+    parts.push [@makeCode "(#{op} "]
+    parts.push @first.compileToFragments o, LEVEL_OP
+    parts.push [@makeCode ")"]
     @joinFragmentArrays parts, ''
 
   compilePower: (o) ->

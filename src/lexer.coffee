@@ -677,7 +677,7 @@ exports.Lexer = class Lexer
   # Are we in the midst of an unfinished expression?
   unfinished: ->
     LINE_CONTINUER.test(@chunk) or
-    @tag() in ['\\', '.', '?.', '?::', 'UNARY', 'MATH', 'UNARY_MATH', '+', '-', 'YIELD',
+    @tag() in ['\\', '.', '?.', '?::', 'UNARY', 'MATH', 'UNARY_MATH', '+', '-', 'YIELD', 'AWAIT',
                '**', 'SHIFT', 'RELATION', 'COMPARE', 'LOGIC', 'THROW', 'EXTENDS']
 
   formatString: (str) ->
@@ -742,7 +742,7 @@ exports.Lexer = class Lexer
 JS_KEYWORDS = [
   'true', 'false', 'null', 'this'
   'new', 'delete', 'typeof', 'in', 'instanceof'
-  'return', 'throw', 'break', 'continue', 'debugger', 'yield'
+  'return', 'throw', 'break', 'continue', 'debugger', 'yield', 'await',
   'if', 'else', 'switch', 'for', 'while', 'do', 'try', 'catch', 'finally'
   'class', 'extends', 'super'
 ]
