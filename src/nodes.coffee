@@ -1669,6 +1669,7 @@ exports.Op = class Op extends Base
     '!=':        '!=='
     'of':        'in'
     'yieldfrom': 'yield*'
+    'awaitall':  'await*'
 
   # The map of invertible operators.
   INVERSIONS =
@@ -1686,7 +1687,7 @@ exports.Op = class Op extends Base
     @isYield() and @first instanceof Return
 
   isAwait: ->
-    @operator == 'await'
+    @operator in ['await', 'await*']
 
   isUnary: ->
     not @second

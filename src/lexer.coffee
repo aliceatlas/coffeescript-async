@@ -112,6 +112,9 @@ exports.Lexer = class Lexer
     if id is 'from' and @tag() is 'YIELD'
       @token 'FROM', id
       return id.length
+    if id is 'all' and @tag() is 'AWAIT'
+      @token 'ALL', id
+      return id.length
     [..., prev] = @tokens
     forcedIdentifier = colon or prev? and
       (prev[0] in ['.', '?.', '::', '?::'] or

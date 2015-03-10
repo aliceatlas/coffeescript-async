@@ -551,6 +551,7 @@ grammar =
     o 'YIELD Expression',                       -> new Op $1 , $2
     o 'YIELD FROM Expression',                  -> new Op $1.concat($2) , $3
     o 'AWAIT Expression',                       -> new Op $1 , $2
+    o 'AWAIT ALL Expression',                   -> new Op $1.concat($2) , $3
 
     o '-- SimpleAssignable',                    -> new Op '--', $2
     o '++ SimpleAssignable',                    -> new Op '++', $2
